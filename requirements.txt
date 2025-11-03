@@ -1,0 +1,16 @@
+requests
+ipdb
+pandas
+polars
+asyncpg
+fastapi
+ormar
+psycopg2-binary
+uvicorn
+pydantic
+pydantic_settings
+sqlalchemy
+python-multipart
+flake8
+cloud-sql-python-connector[pg8000]
+
