@@ -291,33 +291,8 @@ curl -X POST "http://localhost:8000/drop_tables?table_name_pat=chr.*"
 
 ## Data Schema
 
-### GSS Data (Small Variants)
 
-Table: `gss_data` or chromosome-specific tables (`chr1`, `chr2`, etc.)
-
-| Column | Type | Indexed | Description |
-|--------|------|---------|-------------|
-| id | INTEGER | PK | Auto-increment primary key |
-| chrom | VARCHAR | - | Chromosome (chr1-22, X, Y, M) |
-| pos | INTEGER | ✓ | Genomic position |
-| ref | VARCHAR | - | Reference allele |
-| alt | VARCHAR | - | Alternate allele |
-| ac | INTEGER | - | Allele count |
-| an | INTEGER | - | Allele number |
-| af | FLOAT | - | Allele frequency |
-| filter | VARCHAR | - | Filter status (PASS, etc.) |
-| ac_hemi | INTEGER | - | Hemizygous allele count |
-| ac_het | INTEGER | - | Heterozygous allele count |
-| ac_hom | INTEGER | - | Homozygous allele count |
-| f_missing | FLOAT | - | Fraction missing |
-| type | VARCHAR | - | Variant type (SNV, indel) |
-| gene | VARCHAR | ✓ (hash) | Gene name |
-| consequence | VARCHAR | - | Variant consequence |
-| vrs_id | VARCHAR | - | VRS identifier |
-
-**Unique constraint:** (pos, ref, alt, gene)
-
-### SV Data (Structural Variants)
+### GSS multiomics report (Structural Variants)
 
 Table: `sv_table` or family-specific tables
 
@@ -420,7 +395,7 @@ curl -X POST "http://localhost:8000/search" \
   }'
 ```
 
-### Example 4: Load Data from File
+### Example 4.1: Load Data from File by curl
 
 ```bash
 curl -X POST "http://localhost:8000/load_data" \
@@ -431,6 +406,11 @@ curl -X POST "http://localhost:8000/load_data" \
     "on_conflict": "update",
     "valid_table_name_pat": "chr1"
   }'
+```
+### Example 4.2: Load Data from Files in Batch
+
+```bash
+PYTHPONPATH=. python app/db_cli.ply --chunk_size 1000 --data_files raw_file1.txt raw_file2.txt ...
 ```
 
 ### Example 5: Multiple Filter Conditions (OR)
@@ -493,21 +473,11 @@ docker-compose up -d
 docker run -d \
   --name postgres-gss \
   -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=gss_data \
+  -e POSTGRES_DB=db_name \
   -p 5432:5432 \
   postgres:14
 ```
 
-### Database Migrations
-
-The service automatically creates tables on startup based on the schema definitions in `db_manager.py`.
-
-To manually create tables:
-```bash
-curl -X POST "http://localhost:8000/create_tables" \
-  -H "Content-Type: application/json" \
-  -d '{"table_names": ["chr1", "chr2"]}'
-```
 
 ### Testing
 
@@ -575,41 +545,6 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=<from-secret-manager>
 ```
 
-## Performance
-
-### Query Performance
-
-Typical query performance on a dataset with 10M variants:
-
-| Query Type | Time | Notes |
-|------------|------|-------|
-| Gene lookup | 10-50ms | Hash index |
-| Position range | 50-200ms | B-tree index |
-| Complex filter | 100-500ms | Multiple indexes |
-| Full table scan | 5-30s | No indexes |
-
-### Optimization Tips
-
-1. **Use Indexes**
-   - Gene queries: Hash index
-   - Position queries: B-tree index
-   - Array queries: GIN index
-
-2. **Partition by Chromosome**
-   - Smaller tables = faster queries
-   - Better for parallel loading
-
-3. **Batch Loading**
-   - Use chunk_size 1000-5000
-   - Enable on_conflict for deduplication
-
-4. **Select Specific Fields**
-   - Reduce network transfer
-   - Faster query execution
-
-5. **Use Connection Pooling**
-   - Configured in db_manager.py
-   - pool_size=5, max_overflow=2
 
 ### Monitoring
 
