@@ -6,7 +6,6 @@ A high-performance FastAPI service for storing and querying large-scale genome s
 
 - [Overview](#overview)
 - [Features](#features)
-- [Architecture](#architecture)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [API Documentation](#api-documentation)
@@ -14,7 +13,6 @@ A high-performance FastAPI service for storing and querying large-scale genome s
 - [Usage Examples](#usage-examples)
 - [Development](#development)
 - [Deployment](#deployment)
-- [Performance](#performance)
 - [Troubleshooting](#troubleshooting)
 
 ## Overview
