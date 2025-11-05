@@ -344,6 +344,9 @@ Table: `sv_table` or family-specific tables
 
 ## Usage Examples
 
+### Note: you can try the APIs in the docs page at: localhost/IP_address:8000/docs.
+
+
 ### Example 1: Query by Gene Name
 
 ```bash
@@ -448,6 +451,9 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ### Database Setup (PostgreSQL)
 
+**Default: GCP Cloud SQL
+Use .env file to set the credentials for the cloud sql api access
+
 **Option 1: Local PostgreSQL**
 ```bash
 # Install PostgreSQL
@@ -504,14 +510,34 @@ app/
 
 ```bash
 # Build image
-docker build -t gss-data-service .
+docker-compse build
 
 # Run container
-docker run -d \
-  -p 8000:8000 \
-  -v $(pwd)/data:/app/data \
-  -e DATABASE_URLS=postgresql://user:pass@host:5432/gss_data \
-  gss-data-service
+docker-compose up
+
+# Shutdown the container
+docker-compose down
+```
+
+Once the container image is built locally, you can save and copy the image to any VM.
+
+```bash
+# Save the image named gss_api
+docker save |gzip > gss_api.tgz
+
+# Copy the file to the target VM
+gcloud compute scp --zone ZONE --project PROJETC_ID gss_api.tgz VM_NAME:~/
+
+# Copy the Dockerfile/docker-compose.yml 
+gcloud compute scp --zone ZONE --project PROJETC_ID Dockerfile VM_NAME:~/
+gcloud compute scp --zone ZONE --project PROJETC_ID docker-compose.yml VM_NAME:~/
+
+# ssh to the VM and Load the image
+docker load < gss_api.tgz
+
+# Start the container
+docker-compose up
+
 ```
 
 ### GCP Cloud Run Deployment
@@ -596,14 +622,6 @@ Solution: pip install cloud-sql-python-connector[pg8000]
 Solution: Reduce chunk_size parameter (try 100-500)
 ```
 
-**5. Slow Queries**
-```
-Solution:
-- Check if indexes exist
-- Reduce result size
-- Partition by chromosome
-```
-
 ### Debug Mode
 
 Enable debug output:
@@ -652,4 +670,4 @@ For issues and questions:
 ---
 
 **Documentation:**
-- API Docs: http://localhost:8000/docs
+- API Docs: http://localhost/IP:8000/docs
