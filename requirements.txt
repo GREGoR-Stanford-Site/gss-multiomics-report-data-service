@@ -1,7 +1,7 @@
 requests
 ipdb
 pandas
-polars
+polars[rtcompat]
 asyncpg
 fastapi
 ormar
@@ -13,4 +13,4 @@ sqlalchemy
 python-multipart
 flake8
 cloud-sql-python-connector[pg8000]
-
+mygene

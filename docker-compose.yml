@@ -1,4 +1,3 @@
-#version: '3.8'
 
 services:
   web:
@@ -7,16 +6,21 @@ services:
       dockerfile: Dockerfile
     #command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.main:app --host 0.0.0.0:8000'
     image: gss_api
+    platform: linux/amd64
     volumes:
-      - .:/app
+      # - .:/app
       - ${DATA_DIR}:/app/gss_data/
+      #  - ~/.config/gcloud:/root/.config/gcloud:ro # for the default key
     ports:
       - 8000:80
     environment:
+      - MODULE_NAME=app.main  # required for the image
+      - VARIABLE_NAME=app     
       - DATABASE_URLS=${DATABASE_URLS}
       - DATA_DIR=${DATA_DIR}
-      - DEFAULT_DB_NAME=${DEFAULT_DB_NAME}
+      - DB_NAME=${DB_NAME}
       - MAX_WORKERS=${MAX_WORKERS}  
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gss-multiomics-report-data-service-account-key.json
     env_file:
       - .env
 

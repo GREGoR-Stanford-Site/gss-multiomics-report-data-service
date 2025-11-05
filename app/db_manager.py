@@ -16,7 +16,8 @@ from sqlalchemy import (
     ForeignKey,
     inspect,
 )
-
+import os
+from pathlib import Path
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.engine.reflection import Inspector
@@ -27,9 +28,8 @@ from collections import defaultdict
 import re
 import json
 import logging
-
 from google.cloud.sql.connector import Connector, IPTypes
-
+from google.oauth2 import service_account
 from app.config import settings
 from app.utils import (
     convert_filter_to_sql_where_clause,
@@ -152,10 +152,36 @@ engine = None
 
 # a global connector instance
 def create_connector():
+    # Explicitly load credentials
+    # Check if explicitly set via environment variable
+    creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+    if creds_path and Path(creds_path).exists():
+        print(f"Using credentials from: {creds_path}")
+        cloud_credentials = service_account.Credentials.from_service_account_file(
+            creds_path, scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+
+        return Connector(
+            ip_type=IPTypes.PUBLIC,  # or IPTypes.PRIVATE for localhost
+            refresh_strategy="lazy",  # or "background"
+            timeout=30,
+            credentials=cloud_credentials,
+        )
+
+    else:
+        print("Using default application credentials.")
+        return Connector(
+            ip_type=IPTypes.PUBLIC,  # or IPTypes.PRIVATE for localhost
+            refresh_strategy="lazy",  # or "background"
+            timeout=30,
+        )
+
     return Connector(
         ip_type=IPTypes.PUBLIC,  # or IPTypes.PRIVATE for localhost
         refresh_strategy="lazy",  # or "background"
         timeout=30,
+        credentials=cloud_credentials,
     )
 
 

@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 import time
 import ipdb
 import pandas as pd
@@ -8,7 +7,6 @@ import polars as pl
 import numpy as np
 import mygene
 import requests
-from collections import defaultdict
 from functools import wraps
 import hashlib
 
@@ -59,15 +57,6 @@ def add_hash_to_chunk(
 
 
 def normalize_gene(gene):
-    if not settings.replace_ensembl_ids_in_db:
-        return gene
-
-    # replace certain ensembl ids by the gene symbols
-    if gene and gene.startswith(ENSEMBL_ID_PREFIX):
-        gene_sym = get_gene_symbol(gene)
-        if gene_sym:
-            return gene_sym
-
     return gene
 
 
@@ -663,21 +652,6 @@ def convert_filter_to_sql_where_clause_wrong(
         return f" WHERE {' AND '.join(constraints)}"
 
     return ""
-
-
-def get_gene_symbol(ensembl_id):
-    if ENSEMBL_ID_TO_GENE_SYMBOL_MAPPINGS:
-        return ENSEMBL_ID_TO_GENE_SYMBOL_MAPPINGS.get(ensembl_id)
-    else:
-        print("WARN: getting the gene symbol for the ensembl id from the internet!")
-        return get_gene_symbols(ensembl_id)
-
-
-def get_ensembl_id(gene):
-    if GENE_SYMBOL_TO_ENSEMBL_ID_MAPPINGS:
-        return GENE_SYMBOL_TO_ENSEMBL_ID_MAPPINGS.get(gene)
-    else:
-        return None
 
 
 def get_gene_symbols(ensembl_ids):
