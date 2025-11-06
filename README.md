@@ -126,15 +126,6 @@ DATA_DIR=../data/
 
 ```
 
-### Database URLs Format
-
-Multiple local databases can be configured:
-```bash
-DATABASE_URLS=postgresql://user:pass@host:port/db1,postgresql://user:pass@host:port/db2
-```
-
-The service will parse these and create handlers for each database.
-
 ## API Documentation
 
 ### Base URL
@@ -143,7 +134,7 @@ The service will parse these and create handlers for each database.
 http://localhost:8000
 ```
 
-### Interactive API Docs
+### Interactive API Docs (for local deployment)
 
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
@@ -342,7 +333,15 @@ Table: `sv_table` or family-specific tables
 
 ## Usage Examples
 
-### Note: you can try the APIs in the docs page at: localhost/IP_address:8000/docs.
+### Note for local deployment you can try the APIs in the docs page at: localhost/IP_address:8000/docs. For cloud run production, you can only access the end point with the url from the cloud run service. Here is an example using curl:
+```bash
+# get the token:
+ID_TOKEN=$(gcloud auth print-identity-token)
+
+curl -i -X POST "https://cloud_service_name/search" -H "Authorization: Bearer $ID_TOKEN" \
+-H "Content-Type: application/json" \
+--data-raw '{"filters": [{"chrom":"chr1"}], "size":1}'
+```
 
 
 ### Example 1: Query by Gene Name
@@ -539,36 +538,21 @@ docker-compose up
 ```
 
 ### GCP Cloud Run Deployment
+There is a deployed cloud run service: gss-mrdb-api in GCP. You can update the env variables and re-deployed. You can find the server url in the console to use for POST requests.
 
-```bash
-# Build and push to GCR
-gcloud builds submit --tag gcr.io/PROJECT_ID/gss-data-service
-
-# Deploy to Cloud Run
-gcloud run deploy gss-data-service \
-  --image gcr.io/PROJECT_ID/gss-data-service \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars USE_GCP_DB=1,INSTANCE_CONNECTION_NAME=PROJECT:REGION:INSTANCE
-```
 
 ### Environment-Specific Configuration
 
 **Development:**
 ```bash
 USE_GCP_DB=0
-DATABASE_URLS=postgresql://localhost:5432/gss_data
-```
-
-**Production:**
-```bash
-USE_GCP_DB=1
 INSTANCE_CONNECTION_NAME=project:region:instance
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=<from-secret-manager>
 ```
 
+**Production:**
+The POSTGRES_USR and POSTGRES_PASSWORD values are stored in gcp secrets so that the cloud run deployment can access them.
 
 ### Monitoring
 
