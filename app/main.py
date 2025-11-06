@@ -97,7 +97,7 @@ app.add_middleware(
 
 
 # API endpoints
-@app.post("/create_tables", response_model=StatusResponse)
+@app.post("/create_tables", response_model=StatusResponse, include_in_schema=False)
 def create_tables(table_names: list):
     try:
         return db_handler.create_gsf_models(table_names)
@@ -115,7 +115,7 @@ async def search_api(params: SearchRequestParams):
         return {"Search error": str(e)}
 
 
-@app.post("/query")
+@app.post("/query", include_in_schema=False)
 async def execute_query(query: str):
     try:
         with db_handler.get_session() as session:
@@ -125,7 +125,7 @@ async def execute_query(query: str):
         return {"Query error": str(e)}
 
 
-@app.post("/load_data")
+@app.post("/load_data", include_in_schema=False)
 def load_data(params: LoadRequestParams, uploaded_file: UploadFile = File(None)):
     params_dict = params.model_dump() if params else {}
     try:
@@ -142,21 +142,10 @@ def load_data(params: LoadRequestParams, uploaded_file: UploadFile = File(None))
         return {"Loading error": str(e)}
 
 
-@app.post("/drop_tables")
+@app.post("/drop_tables", include_in_schema=False)
 def drop(table_name_pat: str = None):
     with db_handler.get_session() as session:
         return db_handler.drop_tables(table_name_pat, session)
-
-
-@app.get("/")
-def root():
-    """API root endpoint."""
-    return {
-        "service": "GSS Multiomics Report Data Service",
-        "backends": {
-            "postgresql": "/search, /load_data, /query, /create_tables, /drop_tables",
-        },
-    }
 
 
 if __name__ == "__main__":

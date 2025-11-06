@@ -243,7 +243,7 @@ def initialize_db(db_name: str = settings.db_name):
 
     if engine is None:
         engine = create_db_engine(
-            db_url=settings.db_urls[db_name],
+            # db_url=settings.db_urls[db_name],
             connector=connector,
             connection_name=settings.instance_connection_name,
             db_user=settings.postgres_user,
